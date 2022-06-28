@@ -6,6 +6,7 @@
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import abc
 
@@ -61,7 +62,7 @@ class Train:
         for epoch in range(epochs):
             train_X = model.train_set.X
             train_Y = model.train_set.Y
-            train_Y_hat = model.predict("train_set")
+            train_Y_hat = model.predict(train_X)
             loss = loss_func(train_Y_hat, model.train_set.Y)
             losses.append(loss)
             # print(f"loss before epoch{epoch}: {loss}")
@@ -76,7 +77,7 @@ class Train:
         for i in indies:
             train_X = model.train_set.X[i, ...]
             train_Y = model.train_set.Y[i]
-            train_Y_hat = model.predict(X=train_X)
+            train_Y_hat = model.predict(train_X)
             loss = loss_func(train_Y_hat, model.train_set.Y[i])
             if i % 10 == 0:
                 losses.append(loss)
@@ -113,22 +114,26 @@ class Model(metaclass=abc.ABCMeta):
             plt.scatter(self.valid_set.X[:, 0], self.valid_set.Y, s=10, c='b')
             plt.scatter(self.test_set.X[:, 0], self.test_set.Y, s=10, c='y')
         elif flag == "3d":
-            ax = plt.axes(projection="3d")
-            ax.scatter3D(self.train_set.X[:, 0],
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection="3d")
+            ax.scatter(self.train_set.X[:, 0],
                          self.train_set.X[:, 1],
                          self.train_set.Y,
                          s=10,
                          c='r')
-            ax.scatter3D(self.valid_set.X[:, 0],
+            ax.scatter(self.valid_set.X[:, 0],
                          self.valid_set.X[:, 1],
                          self.valid_set.Y,
                          s=10,
                          c='b')
-            ax.scatter3D(self.test_set.X[:, 0],
+            ax.scatter(self.test_set.X[:, 0],
                          self.test_set.X[:, 1],
                          self.test_set.Y,
                          s=10,
                          c='y')
+            ax.set_xlabel("Feature 1")
+            ax.set_ylabel("Feature 2")
+            ax.set_zlabel("Label")
 
     @abc.abstractmethod
     def predict(self, X):
@@ -141,15 +146,15 @@ class Model(metaclass=abc.ABCMeta):
         # 开始训练，获得losses
         losses = training(self, loss_func, decent, lr, epochs)
         # 训练集最终loss
-        loss = loss_func(self.predict("train_set"), self.train_set.Y)
+        loss = loss_func(self.predict(self.train_set.X), self.train_set.Y)
         print(f"End Loss: {loss}")
         # 梯度下降后得到的结果
         print(f"Result:\n{self}\n")
         # 验证集loss
-        valid_loss = loss_func(self.predict("valid_set"), self.valid_set.Y)
+        valid_loss = loss_func(self.predict(self.valid_set.X), self.valid_set.Y)
         print(f"Validation Set Loss: {valid_loss}")
         # 测试集loss
-        test_loss = loss_func(self.predict("test_set"), self.test_set.Y)
+        test_loss = loss_func(self.predict(self.test_set.X), self.test_set.Y)
         print(f"Test Set Loss: {test_loss}")
         # loss曲线
         plt.plot(np.array(list(range(len(losses)))), np.array(losses))

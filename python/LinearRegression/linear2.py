@@ -88,13 +88,9 @@ class LinearModel(Model):
     def data_plot(self, flag="2d"):
         super().data_plot(flag)
 
-    def predict(self, label="train_set", X=None):
+    def predict(self, X):
         """根据X预测Y"""
-        if X is None:
-            data = self.__dict__[label]
-            Y_hat = np.matmul(data.X, self.w_hat) + self.b_hat
-        else:
-            Y_hat = np.matmul(X, self.w_hat) + self.b_hat
+        Y_hat = np.matmul(X, self.w_hat) + self.b_hat
         return Y_hat.reshape((-1, 1))
 
 
