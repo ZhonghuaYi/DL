@@ -2,6 +2,7 @@
 # @Author:  ZhonghuaYi
 # @Date  :  6/28/2022
 # @Time  :  3:58 PM
+import numpy as np
 
 from python.template import *
 
@@ -32,6 +33,13 @@ class SquareLoss(Loss):
     def loss(Y_hat, Y):
         m = len(Y)
         return np.sum((Y_hat - Y) ** 2. / (2. * m))
+
+    @staticmethod
+    def regularized_loss(model, Y_hat, Y, lamda):
+        m = len(Y)
+        regular_item = lamda / (2 * m) * (np.sum(model.w_hat ** 2, axis=0) +
+                                          np.sum(model.b_hat ** 2, axis=0))
+        return SquareLoss.loss(Y_hat, Y) + regular_item
 
 
 class SquareLossDecent(GradDecent):
@@ -95,9 +103,22 @@ class LinearModel(Model):
 
 
 if __name__ == '__main__':
+    train_dict = {
+        "lr": 0.1,
+        "epochs": 1000,
+        "loss_func": SquareLoss.loss,
+        "regularized_loss_func": SquareLoss.regularized_loss,
+        "lamda": 0,
+        "decent": SquareLossDecent.decent,
+        "training": LinearTrain.batch_train,
+    }
+    train_parameter = TrainParameter()
+    train_parameter.set(**train_dict)
     linear_model = LinearModel([2.1, 1.4], 0.5)
     linear_model.data_generate(1000)
     linear_model.data_scale()
-    linear_model.train(0.1, 1000, SquareLoss.loss, SquareLossDecent.decent, LinearTrain.batch_train)
+    linear_model.train(train_parameter)
+    linear_model.valid(train_parameter.loss_func)
+    linear_model.test(train_parameter.loss_func)
     linear_model.data_plot(flag="3d")
     plt.show()

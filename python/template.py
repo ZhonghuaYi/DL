@@ -47,6 +47,11 @@ class Loss(metaclass=abc.ABCMeta):
     def loss(Y_hat, Y):
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    def regularized_loss(model, Y_hat, Y, lamda):
+        pass
+
 
 class GradDecent(metaclass=abc.ABCMeta):
     @staticmethod
@@ -57,20 +62,29 @@ class GradDecent(metaclass=abc.ABCMeta):
 
 class Train:
     @staticmethod
-    def batch_train(model, loss_func, decent, lr, epochs):
+    def batch_train(model, train_parameter):
+        lr = train_parameter.lr
+        epochs = train_parameter.epochs
+        regularized_loss_func = train_parameter.regularized_loss_func
+        lamda = train_parameter.lamda
+        decent = train_parameter.decent
         losses = []
         for epoch in range(epochs):
             train_X = model.train_set.X
             train_Y = model.train_set.Y
             train_Y_hat = model.predict(train_X)
-            loss = loss_func(train_Y_hat, model.train_set.Y)
+            loss = regularized_loss_func(model, train_Y_hat, model.train_set.Y, lamda)
             losses.append(loss)
             # print(f"loss before epoch{epoch}: {loss}")
             decent(model, lr, train_X, train_Y, train_Y_hat)
         return losses
 
     @staticmethod
-    def sgd(model, loss_func, decent, lr):
+    def sgd(model, train_parameter):
+        lr = train_parameter.lr
+        epochs = train_parameter.epochs
+        regularized_loss_func = train_parameter.regularized_loss_func
+        decent = train_parameter.decent
         losses = []
         indies = list(range(len(model.train_set.Y)))
         random.shuffle(indies)
@@ -78,12 +92,27 @@ class Train:
             train_X = model.train_set.X[i, ...]
             train_Y = model.train_set.Y[i]
             train_Y_hat = model.predict(train_X)
-            loss = loss_func(train_Y_hat, model.train_set.Y[i])
+            loss = regularized_loss_func(train_Y_hat, model.train_set.Y[i])
             if i % 10 == 0:
                 losses.append(loss)
                 # print(f"loss before epoch{epoch}: {loss}")
             decent(model, lr, train_X, train_Y, train_Y_hat)
         return losses
+
+
+class TrainParameter:
+    def __init__(self):
+        self.lr = 0
+        self.epochs = 0
+        self.loss_func = None
+        self.regularized_loss_func = None
+        self.lamda = 0
+        self.decent = None
+        self.training = None
+
+    def set(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
 
 
 class Model(metaclass=abc.ABCMeta):
@@ -140,25 +169,31 @@ class Model(metaclass=abc.ABCMeta):
         """根据X预测Y"""
         pass
 
-    def train(self, lr, epochs, loss_func, decent, training):
+    def train(self, train_parameter):
+        loss_func = train_parameter.loss_func
+        training = train_parameter.training
         # 最初的参数
-        print(f"Initial value:\n{self}\n")
+        print(f"Initial value:\n{self}")
         # 开始训练，获得losses
-        losses = training(self, loss_func, decent, lr, epochs)
+        losses = training(self, train_parameter)
         # 训练集最终loss
         loss = loss_func(self.predict(self.train_set.X), self.train_set.Y)
         print(f"End Loss: {loss}")
         # 梯度下降后得到的结果
-        print(f"Result:\n{self}\n")
-        # 验证集loss
-        valid_loss = loss_func(self.predict(self.valid_set.X), self.valid_set.Y)
-        print(f"Validation Set Loss: {valid_loss}")
-        # 测试集loss
-        test_loss = loss_func(self.predict(self.test_set.X), self.test_set.Y)
-        print(f"Test Set Loss: {test_loss}")
+        print(f"Result:\n{self}")
         # loss曲线
         plt.plot(np.array(list(range(len(losses)))), np.array(losses))
         plt.title("Loss-Epoch relation")
         plt.xlabel("epoch")
         plt.ylabel("loss")
         plt.show()
+
+    def valid(self, loss_func):
+        # 验证集loss
+        valid_loss = loss_func(self.predict(self.valid_set.X), self.valid_set.Y)
+        print(f"Validation Set Loss: {valid_loss}")
+
+    def test(self, loss_func):
+        # 测试集loss
+        test_loss = loss_func(self.predict(self.test_set.X), self.test_set.Y)
+        print(f"Test Set Loss: {test_loss}")
