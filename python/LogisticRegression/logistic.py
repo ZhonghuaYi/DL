@@ -35,8 +35,15 @@ class CrossEntropyLoss(Loss):
         m = len(Y)
         return - np.sum((Y*np.log(Y_hat)+(1-Y)*np.log(1-Y_hat)) / m)
 
+    @staticmethod
+    def regularized_loss(model, Y_hat, Y, lamda):
+        m = len(Y)
+        regular_item = lamda / (2 * m) * (np.sum(model.w_hat ** 2, axis=0) +
+                                          np.sum(model.b_hat ** 2, axis=0))
+        return CrossEntropyLoss.loss(Y_hat, Y) + regular_item
 
-class CrossEntropyLossDecent:
+
+class CrossEntropyLossDecent(GradDecent):
     @staticmethod
     def decent(model, lr, X, Y, Y_hat):
         m = len(Y_hat)
@@ -44,6 +51,14 @@ class CrossEntropyLossDecent:
         b_grad = - np.sum(Y*(1-Y_hat)-Y_hat*(1-Y), axis=0) / m
         model.w_hat = model.w_hat - lr * w_grad
         model.b_hat = model.b_hat - lr * b_grad
+
+    @staticmethod
+    def regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat):
+        m = len(train_Y_hat)
+        w_grad = np.sum((train_Y_hat - train_Y) * train_X, axis=0) / m
+        b_grad = np.sum((train_Y_hat - train_Y), axis=0) / m
+        model.w_hat = model.w_hat - lr * (w_grad + lamda / m * w_grad)
+        model.b_hat = model.b_hat - lr * (b_grad + lamda / m * b_grad)
 
 
 class LogisticTrain(Train):
@@ -96,9 +111,23 @@ class LogisticModel(Model):
 
 
 if __name__ == '__main__':
+    train_dict = {
+        "lr": 0.1,
+        "epochs": 1000,
+        "loss_func": CrossEntropyLoss.loss,
+        "decent": CrossEntropyLossDecent.decent,
+        "regularized_loss_func": CrossEntropyLoss.regularized_loss,
+        "regular_decent": CrossEntropyLossDecent.regular_decent,
+        "lamda": 5,
+        "training": LogisticTrain.batch_train,
+    }
+    train_parameter = TrainParameter()
+    train_parameter.set(**train_dict)
     logistic = LogisticModel()
     logistic.data_generate(500, 500)
-    logistic.train(1, 100, CrossEntropyLoss.loss, CrossEntropyLossDecent.decent, LogisticTrain.batch_train)
+    logistic.train(train_parameter)
+    logistic.valid(train_parameter.loss_func)
+    logistic.test(train_parameter.loss_func)
     logistic.data_plot()
     x = np.linspace(-3, 3, 100)
     y = logistic.w_hat * x + logistic.b_hat

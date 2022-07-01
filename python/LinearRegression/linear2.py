@@ -51,6 +51,14 @@ class SquareLossDecent(GradDecent):
         model.w_hat = model.w_hat - lr * w_grad
         model.b_hat = model.b_hat - lr * b_grad
 
+    @staticmethod
+    def regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat):
+        m = len(train_Y_hat)
+        w_grad = np.sum((train_Y_hat - train_Y) * train_X, axis=0) / m
+        b_grad = np.sum((train_Y_hat - train_Y), axis=0) / m
+        model.w_hat = model.w_hat - lr * (w_grad + lamda / m * w_grad)
+        model.b_hat = model.b_hat - lr * (b_grad + lamda / m * b_grad)
+
 
 class LinearTrain(Train):
     pass
@@ -107,9 +115,10 @@ if __name__ == '__main__':
         "lr": 0.1,
         "epochs": 1000,
         "loss_func": SquareLoss.loss,
-        "regularized_loss_func": SquareLoss.regularized_loss,
-        "lamda": 0,
         "decent": SquareLossDecent.decent,
+        "regularized_loss_func": SquareLoss.regularized_loss,
+        "regular_decent": SquareLossDecent.regular_decent,
+        "lamda": 5,
         "training": LinearTrain.batch_train,
     }
     train_parameter = TrainParameter()
@@ -121,4 +130,11 @@ if __name__ == '__main__':
     linear_model.valid(train_parameter.loss_func)
     linear_model.test(train_parameter.loss_func)
     linear_model.data_plot(flag="3d")
+    x = np.linspace(-1, 1, 100)
+    y = np.linspace(-1, 1, 100)
+    x, y = np.meshgrid(x, y)
+    z = linear_model.w_hat[0] * x + linear_model.w_hat[1] * y + linear_model.b_hat
+    fig = plt.figure("3d data")
+    ax = fig.axes[0]
+    ax.plot_surface(x, y, z, color=(0, 1, 0, 0.3))
     plt.show()

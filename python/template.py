@@ -59,6 +59,11 @@ class GradDecent(metaclass=abc.ABCMeta):
     def decent(model, lr, train_X, train_Y, train_Y_hat):
         pass
 
+    @staticmethod
+    @abc.abstractmethod
+    def regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat):
+        pass
+
 
 class Train:
     @staticmethod
@@ -67,24 +72,24 @@ class Train:
         epochs = train_parameter.epochs
         regularized_loss_func = train_parameter.regularized_loss_func
         lamda = train_parameter.lamda
-        decent = train_parameter.decent
+        regular_decent = train_parameter.regular_decent
         losses = []
         for epoch in range(epochs):
             train_X = model.train_set.X
             train_Y = model.train_set.Y
             train_Y_hat = model.predict(train_X)
-            loss = regularized_loss_func(model, train_Y_hat, model.train_set.Y, lamda)
+            loss = regularized_loss_func(model, train_Y_hat, train_Y, lamda)
             losses.append(loss)
             # print(f"loss before epoch{epoch}: {loss}")
-            decent(model, lr, train_X, train_Y, train_Y_hat)
+            regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat)
         return losses
 
     @staticmethod
     def sgd(model, train_parameter):
         lr = train_parameter.lr
-        epochs = train_parameter.epochs
         regularized_loss_func = train_parameter.regularized_loss_func
-        decent = train_parameter.decent
+        lamda = train_parameter.lamda
+        regular_decent = train_parameter.regular_decent
         losses = []
         indies = list(range(len(model.train_set.Y)))
         random.shuffle(indies)
@@ -92,11 +97,11 @@ class Train:
             train_X = model.train_set.X[i, ...]
             train_Y = model.train_set.Y[i]
             train_Y_hat = model.predict(train_X)
-            loss = regularized_loss_func(train_Y_hat, model.train_set.Y[i])
+            loss = regularized_loss_func(model, train_Y_hat, train_Y, lamda)
             if i % 10 == 0:
                 losses.append(loss)
                 # print(f"loss before epoch{epoch}: {loss}")
-            decent(model, lr, train_X, train_Y, train_Y_hat)
+            regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat)
         return losses
 
 
@@ -105,9 +110,10 @@ class TrainParameter:
         self.lr = 0
         self.epochs = 0
         self.loss_func = None
-        self.regularized_loss_func = None
-        self.lamda = 0
         self.decent = None
+        self.regularized_loss_func = None
+        self.regular_decent = None
+        self.lamda = 0
         self.training = None
 
     def set(self, **kwargs):
@@ -143,7 +149,7 @@ class Model(metaclass=abc.ABCMeta):
             plt.scatter(self.valid_set.X[:, 0], self.valid_set.Y, s=10, c='b')
             plt.scatter(self.test_set.X[:, 0], self.test_set.Y, s=10, c='y')
         elif flag == "3d":
-            fig = plt.figure()
+            fig = plt.figure("3d data")
             ax = fig.add_subplot(111, projection="3d")
             ax.scatter(self.train_set.X[:, 0],
                          self.train_set.X[:, 1],
