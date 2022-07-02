@@ -179,14 +179,14 @@ class Model(metaclass=abc.ABCMeta):
         loss_func = train_parameter.loss_func
         training = train_parameter.training
         # 最初的参数
-        print(f"Initial value:\n{self}")
+        print(f"Initial value:\n{self}\n")
         # 开始训练，获得losses
         losses = training(self, train_parameter)
         # 训练集最终loss
         loss = loss_func(self.predict(self.train_set.X), self.train_set.Y)
-        print(f"End Loss: {loss}")
+        print(f"End Loss: {loss}\n")
         # 梯度下降后得到的结果
-        print(f"Result:\n{self}")
+        print(f"Result:\n{self}\n")
         # loss曲线
         plt.plot(np.array(list(range(len(losses)))), np.array(losses))
         plt.title("Loss-Epoch relation")
