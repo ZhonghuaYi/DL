@@ -48,16 +48,16 @@ class CrossEntropyLossDecent(GradDecent):
     @staticmethod
     def decent(model, lr, X, Y, Y_hat):
         m = len(Y_hat)
-        w_grad = - np.sum(X * (Y * (1 - Y_hat) - Y_hat * (1 - Y)), axis=0) / m
-        b_grad = - np.sum(Y * (1 - Y_hat) - Y_hat * (1 - Y), axis=0) / m
+        w_grad = np.sum(X * (Y_hat - Y), axis=0) / m
+        b_grad = np.sum(Y_hat - Y, axis=0) / m
         model.w_hat = model.w_hat - lr * w_grad
         model.b_hat = model.b_hat - lr * b_grad
 
     @staticmethod
-    def regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat):
-        m = len(train_Y_hat)
-        w_grad = np.sum((train_Y_hat - train_Y) * train_X, axis=0) / m
-        b_grad = np.sum((train_Y_hat - train_Y), axis=0) / m
+    def regular_decent(model, lr, lamda, X, Y, Y_hat):
+        m = len(Y_hat)
+        w_grad = np.sum((Y_hat - Y) * X, axis=0) / m
+        b_grad = np.sum((Y_hat - Y), axis=0) / m
         model.w_hat = model.w_hat - lr * (w_grad + lamda / m * w_grad)
         model.b_hat = model.b_hat - lr * (b_grad + lamda / m * b_grad)
 
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     z = logistic.w_hat[0] * x + logistic.w_hat[1] * y + logistic.b_hat
     fig = plt.figure("3d data")
     ax = fig.axes[0]
-    ax.plot_surface(x, y, z, color=(0, 1, 0, 0.3))
+    # ax.plot_surface(x, y, z, color=(0, 1, 0, 0.3))
     # 画出直线（平面）经过sigmoid拟合后预测的概率
     ax.plot_surface(x, y, sigmoid(z), color=(0, 0, 1, 0.3))
     # 显示数据图像
