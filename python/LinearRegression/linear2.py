@@ -119,7 +119,7 @@ if __name__ == '__main__':
         "regularized_loss_func": SquareLoss.regularized_loss,
         "regular_decent": SquareLossDecent.regular_decent,
         "lamda": 5,
-        "training": LinearTrain.batch_train,
+        "training": LinearTrain.batch,
     }
     train_parameter = TrainParameter()
     train_parameter.set(**train_dict)

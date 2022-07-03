@@ -67,7 +67,7 @@ class GradDecent(metaclass=abc.ABCMeta):
 
 class Train:
     @staticmethod
-    def batch_train(model, train_parameter):
+    def batch(model, train_parameter):
         lr = train_parameter.lr
         epochs = train_parameter.epochs
         regularized_loss_func = train_parameter.regularized_loss_func
@@ -85,6 +85,29 @@ class Train:
         return losses
 
     @staticmethod
+    def mini_batch(model, train_parameter):
+        lr = train_parameter.lr
+        epochs = train_parameter.epochs
+        batch_size = train_parameter.batch_size
+        regularized_loss_func = train_parameter.regularized_loss_func
+        lamda = train_parameter.lamda
+        regular_decent = train_parameter.regular_decent
+        losses = []
+        for epoch in range(epochs):
+            sample_num = len(model.train_set.Y)
+            ind = list(range(sample_num))
+            random.shuffle(ind)
+            for i in range(0, sample_num, batch_size):
+                train_X = model.train_set.X[i:min(i+batch_size, sample_num), ...]
+                train_Y = model.train_set.Y[i:min(i+batch_size, sample_num), ...]
+                train_Y_hat = model.predict(train_X)
+                loss = regularized_loss_func(model, train_Y_hat, train_Y, lamda)
+                losses.append(loss)
+                # print(f"loss before epoch{epoch}: {loss}")
+                regular_decent(model, lr, lamda, train_X, train_Y, train_Y_hat)
+        return losses
+
+    @staticmethod
     def sgd(model, train_parameter):
         lr = train_parameter.lr
         regularized_loss_func = train_parameter.regularized_loss_func
@@ -94,8 +117,8 @@ class Train:
         indies = list(range(len(model.train_set.Y)))
         random.shuffle(indies)
         for i in indies:
-            train_X = model.train_set.X[i, ...]
-            train_Y = model.train_set.Y[i]
+            train_X = model.train_set.X[i, ...].reshape(1, -1)
+            train_Y = model.train_set.Y[i, ...].reshape(1, -1)
             train_Y_hat = model.predict(train_X)
             loss = regularized_loss_func(model, train_Y_hat, train_Y, lamda)
             if i % 10 == 0:
@@ -109,6 +132,7 @@ class TrainParameter:
     def __init__(self):
         self.lr = 0
         self.epochs = 0
+        self.batch_size = 0
         self.loss_func = None
         self.decent = None
         self.regularized_loss_func = None

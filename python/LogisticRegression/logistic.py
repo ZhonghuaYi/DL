@@ -120,7 +120,7 @@ class LogisticModel(Model):
         print(f"Accuracy of {label}: {accuracy_rate}")
 
     def precision(self, label="train_set"):
-        """计算查全率"""
+        """计算查准率"""
         data = self.__dict__[label]
         result = (self.predict(data.X) > 0.5).astype(data.Y.dtype)
         result_1 = result * data.Y
@@ -133,20 +133,21 @@ class LogisticModel(Model):
         result = (self.predict(data.X) > 0.5).astype(data.Y.dtype)
         result_1 = result * data.Y
         recall_rate = np.sum(result_1) / np.sum(result)
-        print(f"Precision of {label}: {recall_rate}")
+        print(f"Recall of {label}: {recall_rate}")
 
 
 if __name__ == '__main__':
     # 设置训练的参数
     train_dict = {
         "lr": 0.1,
-        "epochs": 1000,
+        "epochs": 20,
+        "batch_size": 50,
         "loss_func": CrossEntropyLoss.loss,
         "decent": CrossEntropyLossDecent.decent,
         "regularized_loss_func": CrossEntropyLoss.regularized_loss,
         "regular_decent": CrossEntropyLossDecent.regular_decent,
-        "lamda": 2,
-        "training": LogisticTrain.batch_train,
+        "lamda": 0,
+        "training": LogisticTrain.mini_batch,
     }
     train_parameter = TrainParameter()
     train_parameter.set(**train_dict)
