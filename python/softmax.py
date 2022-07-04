@@ -93,7 +93,7 @@ class SoftmaxModel(Model):
 
     def data_generate(self):
         from python.data.mnist import load_mnist
-        train_images, train_labels, test_images, test_labels = load_mnist("../data/")
+        train_images, train_labels, test_images, test_labels = load_mnist("./data/")
         train_labels = one_hot(train_labels)
         test_labels = one_hot(test_labels)
         self.train_set = SoftmaxData(train_images, train_labels)

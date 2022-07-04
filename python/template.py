@@ -12,7 +12,6 @@ import abc
 
 
 class DataSet(metaclass=abc.ABCMeta):
-    """线性回归的数据"""
 
     def __init__(self, X=None, Y=None):
         self.X = X
