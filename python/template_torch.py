@@ -3,20 +3,14 @@
 # @Date  :  7/4/2022
 # @Time  :  10:15 PM
 
-import torch
-import torch.nn as nn
-from torch.utils import data
-
 import abc
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils import data
-import matplotlib.pyplot as plt
 import random
 
 
-class DataSet(metaclass=abc.ABCMeta, data.Dataset):
+class DataSet(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self, *args, **kwargs):
         self.features = None
@@ -56,41 +50,37 @@ class Net(nn.Module):
 
 class TrainMethod:
     @staticmethod
-    def batch(train_set, net, loss, lr, epochs):
+    def batch(train_set, net, loss, trainer, epochs):
         losses = []
         X = train_set.features
         Y = train_set.labels
         for epoch in range(epochs):
+            trainer.zero_grad()
             Y_hat = net(X).reshape(Y.shape)
-            l = loss(Y, Y_hat)
+            l = loss(Y_hat, Y)
             losses.append(l.detach())
             l.backward()
-            with torch.no_grad():
-                for param in net.parameters():
-                    param.data.sub_(lr * param.grad)
-                net.zero_grad()
+            trainer.step()
         return losses
 
     @staticmethod
-    def sgd(train_set, net, loss, lr):
+    def sgd(train_set, net, loss, trainer):
         losses = []
         indies = list(range(len(train_set)))
         random.shuffle(indies)
         for i in indies:
+            trainer.zero_grad()
             X, Y = train_set[i]
             Y_hat = net(X).reshape(Y.shape)
-            l = loss(Y, Y_hat)
+            l = loss(Y_hat, Y)
             if i % 10 == 0:
                 losses.append(l.detach())
             l.backward()
-            with torch.no_grad():
-                for param in net.parameters():
-                    param.data.sub_(lr * param.grad)
-                net.zero_grad()
+            trainer.step()
         return losses
 
     @staticmethod
-    def mini_batch(train_set, net, loss, lr, epochs, batch_size):
+    def mini_batch(train_set, net, loss, trainer, epochs, batch_size):
         losses = []
         sample_num = len(train_set)
         ind = list(range(sample_num))
@@ -98,14 +88,13 @@ class TrainMethod:
             random.shuffle(ind)
             for i in range(0, sample_num, batch_size):
                 X, Y = train_set[i:min(i+batch_size, sample_num)]
+                trainer.zero_grad()
                 Y_hat = net(X).reshape(Y.shape)
-                l = loss(Y, Y_hat)
+                l = loss(Y_hat, Y)
                 losses.append(l.detach())
                 l.backward()
-                with torch.no_grad():
-                    for param in net.parameters():
-                        param.data.sub_(lr * param.grad)
-                    net.zero_grad()
+                trainer.step()
+        return losses
 
 
 if __name__ == '__main__':

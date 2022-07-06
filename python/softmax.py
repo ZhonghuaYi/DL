@@ -19,9 +19,9 @@ def softmax(X):
 
 def one_hot(Y):
     m = len(Y)
-    new_Y = np.zeros((m, 10))
+    new_Y = np.zeros((m, 10), dtype=np.int32)
     for i in range(m):
-        new_Y[i, Y[i]] = 1
+        new_Y[i, int(Y[i])] = 1
     return new_Y
 
 

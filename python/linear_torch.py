@@ -4,11 +4,7 @@
 # @Time  :  10:09 PM
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils import data
 import matplotlib.pyplot as plt
-import random
 
 from python.template_torch import *
 
@@ -48,7 +44,7 @@ class LinearData(DataSet):
             return (x_mean, x_maximum), (y_mean, y_maximum)
 
 
-class LinearNet(nn.Module):
+class LinearNet(Net):
     def __init__(self, feature_num, label_num):
         super().__init__()
         self.fc1 = nn.Linear(feature_num, label_num)
@@ -56,20 +52,6 @@ class LinearNet(nn.Module):
     def forward(self, X):
         Y_hat = self.fc1(X)
         return Y_hat
-
-
-def batch(X, Y, net, loss, lr, epochs):
-    losses = []
-    for epoch in range(epochs):
-        Y_hat = net(X).reshape(Y.shape)
-        l = loss(Y, Y_hat)
-        losses.append(l.detach())
-        l.backward()
-        with torch.no_grad():
-            for param in net.parameters():
-                param.data.sub_(lr * param.grad)
-            net.zero_grad()
-    return losses
 
 
 if __name__ == '__main__':
@@ -82,13 +64,27 @@ if __name__ == '__main__':
     train_set.data_plot("3d")
     plt.show()
 
-    lr = 0.02
-    epochs = 100
+    lr = 0.01
+    epochs = 10
+    batch_size = 50
     net = LinearNet(2, 1)
     loss = nn.MSELoss()
+    train = TrainMethod.mini_batch
+    trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
 
-    losses = batch(train_set.features, train_set.labels, net, loss, lr, epochs)
-    for param in net.parameters():
-        print(param)
+    losses = train(train_set, net, loss, trainer, epochs, batch_size)
+    # 训练集loss
+    print("Loss of train set: ",
+          loss(net(train_set.features).reshape(train_set.labels.shape),
+               train_set.labels))
+    # 验证集loss
+    print("Loss of valid set: ",
+          loss(net(valid_set.features).reshape(valid_set.labels.shape),
+               valid_set.labels))
+    # 测试集loss
+    print("Loss of valid set: ",
+          loss(net(test_set.features).reshape(test_set.labels.shape),
+               test_set.labels))
+    print(list(net.named_parameters()))
     plt.plot(np.array(range(len(losses))), np.array(losses))
     plt.show()
