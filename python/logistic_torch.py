@@ -2,7 +2,6 @@
 # @Author:  ZhonghuaYi
 # @Date  :  7/5/2022
 # @Time  :  7:57 PM
-import torch
 
 from python.template_torch import *
 import numpy as np
@@ -32,7 +31,6 @@ class CrossEntropyLoss:
 
 class LogisticData(DataSet):
     def __init__(self, num1, num2):
-        num = num1 + num2
         X11 = np.random.normal(-2, 1, (num1, 1))
         X12 = np.random.normal(2, 1, (num1, 1))
         Y1 = np.zeros((num1, 1))
@@ -66,8 +64,8 @@ class LogisticData(DataSet):
             return x_mean, x_maximum
 
         elif x_parameter is None:
-            x_mean = self.features.mean(dim=1)
-            x_maximum = self.features.max(dim=1).values
+            x_mean = self.features.mean(dim=0)
+            x_maximum = self.features.max(dim=0).values
             self.features = (self.features - x_mean) / x_maximum
             return x_mean, x_maximum
 
@@ -82,18 +80,42 @@ class LogisticNet(Net):
         return Y_hat
 
 
+def accuracy(data, net):
+    """计算正确率"""
+    result = (net(data.features) > 0.5).clone().detach().reshape(data.labels.shape).int()
+    accuracy_rate = (result == data.labels).sum() / data.labels.shape[0]
+    print(f"Accuracy: {accuracy_rate}")
+
+
+def precision(data, net):
+    """计算查准率"""
+    result = (net(data.features) > 0.5).clone().detach().reshape(data.labels.shape).int()
+    result_1 = result * data.labels
+    precision_rate = result_1.sum() / data.labels.sum()
+    print(f"Precision: {precision_rate}")
+
+
+def recall(data, net):
+    """计算查全率"""
+    result = (net(data.features) > 0.5).clone().detach().reshape(data.labels.shape).int()
+    result_1 = result * data.labels
+    recall_rate = result_1.sum() / result.sum()
+    print(f"Recall: {recall_rate}")
+
+
 if __name__ == '__main__':
     train_set = LogisticData(300, 300)
     test_set = LogisticData(200, 200)
 
     lr = 0.1
-    epochs = 100
+    epochs = 10
+    batch_size = 50
     net = LogisticNet(2, 1)
     loss = CrossEntropyLoss.loss
-    train = TrainMethod.batch
+    train = TrainMethod.mini_batch
     trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
 
-    losses = train(train_set, net, loss, trainer, epochs)
+    losses = train(train_set, net, loss, trainer, epochs, batch_size)
     plt.plot(np.array(range(len(losses))), np.array(losses))
     plt.show()
 
@@ -106,12 +128,23 @@ if __name__ == '__main__':
         y = x
         x, y = np.meshgrid(x, y)
         w_hat, b_hat = list(net.fc1.parameters())
-        print(w_hat.numpy(), b_hat.numpy())
+        print(f"w_hat: {w_hat.numpy()}")
+        print(f"b_hat: {b_hat.numpy()}")
         z = w_hat[0, 0] * x + w_hat[0, 1] * y + b_hat
         fig = plt.figure("3d data")
         ax = fig.axes[0]
-        ax.plot_surface(x, y, z, color=(0, 1, 0, 0.3))
+        # ax.plot_surface(x, y, z, color=(0, 1, 0, 0.3))
         # 画出直线（平面）经过sigmoid拟合后预测的概率
         ax.plot_surface(x, y, sigmoid(z), color=(0, 0, 1, 0.3))
         ax.set_zlim(-0.5, 1.5)
         plt.show()
+        # 训练集的正确率、查准率和查全率
+        print("\nTrain set:")
+        accuracy(train_set, net)
+        precision(train_set, net)
+        recall(train_set, net)
+        # 测试集的正确率、查准率和查全率
+        print("\nTest set:")
+        accuracy(test_set, net)
+        precision(test_set, net)
+        recall(test_set, net)
