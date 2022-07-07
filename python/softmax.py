@@ -2,7 +2,6 @@
 # @Author:  ZhonghuaYi
 # @Date  :  7/2/2022
 # @Time  :  2:42 PM
-import numpy as np
 
 from python.template import *
 
