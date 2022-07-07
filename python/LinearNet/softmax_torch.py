@@ -44,7 +44,7 @@ def one_hot(Y):
 class MnistData(DataSet):
     def __init__(self, label="train"):
         from python.data.mnist import load_mnist
-        train_images, train_labels, test_images, test_labels = load_mnist("./data/")
+        train_images, train_labels, test_images, test_labels = load_mnist("../data/")
         if label == "train":
             self.features = torch.from_numpy(train_images[:6000, ...]).float()
             self.labels = torch.from_numpy(one_hot(train_labels[:6000, ...])).float()
