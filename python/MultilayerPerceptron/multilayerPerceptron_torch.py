@@ -3,13 +3,19 @@
 # @Date  :  7/8/2022
 # @Time  :  1:39 PM
 
-from python.template_torch import *
-from softmax_torch import *
+import numpy as np
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+
+from python.dataset import MnistData, FashionMnistData
+import python.trainmethod as trainmethod
 
 
-class PerceptronNet(Net):
+class PerceptronNet(nn.Module):
     def __init__(self, feature_num, label_num):
         super(PerceptronNet, self).__init__()
+        # 但损失函数使用了CrossEntropyLoss时，训练时网络的最后不需要执行softmax，但是预测时需要
         self.fc = nn.Sequential(nn.Linear(feature_num, 256),
                                 nn.ReLU(),
                                 nn.Linear(256, label_num))
@@ -20,8 +26,8 @@ class PerceptronNet(Net):
 
 
 if __name__ == '__main__':
-    train_set = MnistData("train")
-    test_set = MnistData("test")
+    train_set = FashionMnistData("train")
+    test_set = FashionMnistData("test")
     x_mean, x_maximum = train_set.data_scale()
     test_set.data_scale((x_mean, x_maximum))
 
@@ -30,7 +36,7 @@ if __name__ == '__main__':
     epochs = 10
     batch_size = 50
     loss = nn.CrossEntropyLoss()
-    train = TrainMethod.mini_batch
+    train = trainmethod.mini_batch
     trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
 
     losses = train(train_set, net, loss, trainer, epochs, batch_size)
@@ -40,11 +46,11 @@ if __name__ == '__main__':
     with torch.no_grad():
         # 训练集的正确率、查准率和查全率
         print("\nTrain set:")
-        accuracy(train_set, net)
-        precision(train_set, net)
-        recall(train_set, net)
+        train_set.accuracy(net)
+        train_set.precision(net)
+        train_set.recall(net)
         # 测试集的正确率、查准率和查全率
         print("\nTest set:")
-        accuracy(test_set, net)
-        precision(test_set, net)
-        recall(test_set, net)
+        test_set.accuracy(net)
+        test_set.precision(net)
+        test_set.recall(net)
