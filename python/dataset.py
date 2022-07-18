@@ -24,6 +24,25 @@ def one_hot(Y):
         return new_y
 
 
+def softmax(x):
+    if type(x) == torch.Tensor:
+        x_exp = torch.exp(x)
+        row_sum = 0
+        if x.ndim == 1:
+            row_sum = x_exp.sum()
+        elif x.ndim == 2:
+            row_sum = x_exp.sum(dim=1).reshape(-1, 1)
+        return x_exp / row_sum
+    elif type(x) == np.ndarray:
+        x_exp = np.exp(x)
+        row_sum = 0
+        if x.ndim == 1:
+            row_sum = np.sum(x_exp)
+        if x.ndim == 2:
+            row_sum = np.sum(x_exp, axis=1).reshape(-1, 1)
+        return x_exp / row_sum
+
+
 class DataSet(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self, *args, **kwargs):
@@ -263,7 +282,9 @@ class FashionMnistData(DataSet):
     def accuracy(self, net):
         """计算正确率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            print(softmax(net(self.features[:20, ...])))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
+            print(result.sum(axis=0))
             accuracy_rate = (result * self.labels).sum() / self.labels.shape[0]
             print(f"Accuracy: {accuracy_rate}")
 

@@ -38,22 +38,24 @@ class LeNet(nn.Module):
 
 
 if __name__ == '__main__':
-    train_set = MnistData("train")
-    test_set = MnistData("test")
+    train_set = FashionMnistData("train")
+    test_set = FashionMnistData("test")
     train_set = reshape(train_set)
     test_set = reshape(test_set)
-    x_mean, x_maximum = train_set.data_scale()
-    test_set.data_scale((x_mean, x_maximum))
+    # x_mean, x_maximum = train_set.data_scale()
+    # test_set.data_scale((x_mean, x_maximum))
+
+    print(train_set.labels[0])
 
     net = LeNet()
-    lr = 0.5
+    lr = 0.1
     epochs = 10
     batch_size = 50
     loss = nn.CrossEntropyLoss()
-    train = trainmethod.mini_batch
+    train = trainmethod.batch
     trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
 
-    losses = train(train_set, net, loss, trainer, epochs, batch_size)
+    losses = train(train_set, net, loss, trainer, epochs)
     plt.plot(np.array(range(len(losses))), np.array(losses))
     plt.show()
 
@@ -61,10 +63,10 @@ if __name__ == '__main__':
         # 训练集的正确率、查准率和查全率
         print("\nTrain set:")
         train_set.accuracy(net)
-        train_set.precision(net)
-        train_set.recall(net)
+        # train_set.precision(net)
+        # train_set.recall(net)
         # 测试集的正确率、查准率和查全率
         print("\nTest set:")
         test_set.accuracy(net)
-        test_set.precision(net)
-        test_set.recall(net)
+        # test_set.precision(net)
+        # test_set.recall(net)
