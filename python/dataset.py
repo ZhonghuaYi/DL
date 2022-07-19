@@ -218,14 +218,14 @@ class MnistData(DataSet):
     def accuracy(self, net):
         """计算正确率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
             accuracy_rate = (result * self.labels).sum() / self.labels.shape[0]
             print(f"Accuracy: {accuracy_rate}")
 
     def precision(self, net):
         """计算查准率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
             result_1 = result * self.labels
             precision_rate = result_1.sum(dim=0) / self.labels.sum(dim=0)
             print(f"Precision: {precision_rate}")
@@ -233,7 +233,7 @@ class MnistData(DataSet):
     def recall(self, net):
         """计算查全率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
             result_1 = result * self.labels
             recall_rate = result_1.sum(dim=0) / result.sum(dim=0)
             print(f"Recall: {recall_rate}")
@@ -282,16 +282,14 @@ class FashionMnistData(DataSet):
     def accuracy(self, net):
         """计算正确率"""
         with torch.no_grad():
-            print(softmax(net(self.features[:20, ...])))
             result = one_hot(softmax(net(self.features)).argmax(dim=1))
-            print(result.sum(axis=0))
             accuracy_rate = (result * self.labels).sum() / self.labels.shape[0]
             print(f"Accuracy: {accuracy_rate}")
 
     def precision(self, net):
         """计算查准率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
             result_1 = result * self.labels
             precision_rate = result_1.sum(dim=0) / self.labels.sum(dim=0)
             print(f"Precision: {precision_rate}")
@@ -299,7 +297,7 @@ class FashionMnistData(DataSet):
     def recall(self, net):
         """计算查全率"""
         with torch.no_grad():
-            result = one_hot(net(self.features).argmax(dim=1))
+            result = one_hot(softmax(net(self.features)).argmax(dim=1))
             result_1 = result * self.labels
             recall_rate = result_1.sum(dim=0) / result.sum(dim=0)
             print(f"Recall: {recall_rate}")

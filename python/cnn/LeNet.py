@@ -21,20 +21,25 @@ def reshape(dataset):
 class LeNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv = nn.Sequential(nn.Conv2d(1, 6, (5, 5), padding=2), nn.Sigmoid(),
-                                  nn.AvgPool2d((2, 2), stride=2),
-                                  nn.Conv2d(6, 16, (5, 5)), nn.Sigmoid(),
-                                  nn.AvgPool2d((2, 2), stride=2))
+        self.conv = nn.Sequential(nn.Conv2d(1, 6, 5, padding=2), nn.ReLU(),
+                                  nn.AvgPool2d(kernel_size=2, stride=2),
+                                  nn.Conv2d(6, 16, 5), nn.ReLU(),
+                                  nn.AvgPool2d(kernel_size=2, stride=2))
         self.flat = nn.Flatten()
-        self.linear = nn.Sequential(nn.Linear(16*5*5, 120), nn.Sigmoid(),
-                                    nn.Linear(120, 84), nn.Sigmoid(),
+        self.linear = nn.Sequential(nn.Linear(16*5*5, 120), nn.ReLU(),
+                                    nn.Linear(120, 84), nn.ReLU(),
                                     nn.Linear(84, 10))
 
     def forward(self, x):
-        y = self.conv(x)
-        y = self.flat(y)
-        y = self.linear(y)
-        return y
+        x = self.conv(x)
+        x = self.flat(x)
+        x = self.linear(x)
+        return x
+
+
+def init_params(m):
+    if type(m) == nn.Linear or type(m) == nn.Conv2d:
+        nn.init.xavier_normal_(m.weight)
 
 
 if __name__ == '__main__':
@@ -45,17 +50,17 @@ if __name__ == '__main__':
     # x_mean, x_maximum = train_set.data_scale()
     # test_set.data_scale((x_mean, x_maximum))
 
-    print(train_set.labels[0])
-
     net = LeNet()
-    lr = 0.1
+    net.apply(init_params)
+    lr = 0.001
     epochs = 10
     batch_size = 50
     loss = nn.CrossEntropyLoss()
-    train = trainmethod.batch
+    train = trainmethod.sgd
     trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
 
-    losses = train(train_set, net, loss, trainer, epochs)
+    losses = train(train_set, net, loss, trainer)
+    print(losses)
     plt.plot(np.array(range(len(losses))), np.array(losses))
     plt.show()
 
@@ -63,10 +68,10 @@ if __name__ == '__main__':
         # 训练集的正确率、查准率和查全率
         print("\nTrain set:")
         train_set.accuracy(net)
-        # train_set.precision(net)
-        # train_set.recall(net)
+        train_set.precision(net)
+        train_set.recall(net)
         # 测试集的正确率、查准率和查全率
         print("\nTest set:")
         test_set.accuracy(net)
-        # test_set.precision(net)
-        # test_set.recall(net)
+        test_set.precision(net)
+        test_set.recall(net)
