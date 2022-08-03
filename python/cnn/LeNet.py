@@ -45,15 +45,15 @@ def init_params(m):
 if __name__ == '__main__':
     train_set = FashionMnistData("train")
     test_set = FashionMnistData("test")
+    x_mean, x_maximum = train_set.data_scale()
+    test_set.data_scale((x_mean, x_maximum))
     train_set = reshape(train_set)
     test_set = reshape(test_set)
-    # x_mean, x_maximum = train_set.data_scale()
-    # test_set.data_scale((x_mean, x_maximum))
 
     net = LeNet()
-    net.apply(init_params)
+    # net.apply(init_params)
     lr = 0.001
-    epochs = 10
+    epochs = 5
     batch_size = 50
     loss = nn.CrossEntropyLoss()
     train = trainmethod.sgd

@@ -180,11 +180,11 @@ class MnistData(DataSet):
         from python.data.mnist import load_mnist
         train_images, train_labels, test_images, test_labels = load_mnist("../data/")
         if label == "train":
-            self.features = torch.from_numpy(train_images[:6000, ...]).float()
-            self.labels = torch.from_numpy(one_hot(train_labels[:6000, ...])).float()
+            self.features = torch.from_numpy(train_images[:60000, ...]).float()
+            self.labels = torch.from_numpy(one_hot(train_labels[:60000, ...])).float()
         elif label == "test":
-            self.features = torch.from_numpy(test_images[:1000, ...]).float()
-            self.labels = torch.from_numpy(one_hot(test_labels[:1000, ...])).float()
+            self.features = torch.from_numpy(test_images[:10000, ...]).float()
+            self.labels = torch.from_numpy(one_hot(test_labels[:10000, ...])).float()
 
     def data_plot(self, flag="2d", c='r'):
         """绘制数据点图，可以是3d"""
@@ -244,11 +244,11 @@ class FashionMnistData(DataSet):
         from python.data.fashion_mnist import load_fashion_mnist
         train_images, train_labels, test_images, test_labels = load_fashion_mnist("../data/")
         if label == "train":
-            self.features = torch.from_numpy(train_images[:6000, ...]).float()
-            self.labels = torch.from_numpy(one_hot(train_labels[:6000, ...])).float()
+            self.features = torch.from_numpy(train_images[:60000, ...]).float()
+            self.labels = torch.from_numpy(one_hot(train_labels[:60000, ...])).float()
         elif label == "test":
-            self.features = torch.from_numpy(test_images[:1000, ...]).float()
-            self.labels = torch.from_numpy(one_hot(test_labels[:1000, ...])).float()
+            self.features = torch.from_numpy(test_images[:10000, ...]).float()
+            self.labels = torch.from_numpy(one_hot(test_labels[:10000, ...])).float()
 
     def data_plot(self, flag="2d", c='r'):
         """绘制数据点图，可以是3d"""
