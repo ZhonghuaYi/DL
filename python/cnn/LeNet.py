@@ -21,13 +21,13 @@ def reshape(dataset):
 class LeNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv = nn.Sequential(nn.Conv2d(1, 6, 5, padding=2), nn.ReLU(),
+        self.conv = nn.Sequential(nn.Conv2d(1, 6, 5, padding=2), nn.Sigmoid(),
                                   nn.AvgPool2d(kernel_size=2, stride=2),
-                                  nn.Conv2d(6, 16, 5), nn.ReLU(),
+                                  nn.Conv2d(6, 16, 5), nn.Sigmoid(),
                                   nn.AvgPool2d(kernel_size=2, stride=2))
         self.flat = nn.Flatten()
-        self.linear = nn.Sequential(nn.Linear(16*5*5, 120), nn.ReLU(),
-                                    nn.Linear(120, 84), nn.ReLU(),
+        self.linear = nn.Sequential(nn.Linear(16*5*5, 120), nn.Sigmoid(),
+                                    nn.Linear(120, 84), nn.Sigmoid(),
                                     nn.Linear(84, 10))
 
     def forward(self, x):
@@ -55,12 +55,14 @@ if __name__ == '__main__':
     lr = 0.001
     epochs = 5
     batch_size = 50
+    device = "cuda"
+    device_num = 0
     loss = nn.CrossEntropyLoss()
-    train = trainmethod.sgd
-    trainer = torch.optim.SGD(net.parameters(), lr=lr, weight_decay=0)
+    train = trainmethod.mini_batch
+    trainer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0)
 
-    losses = train(train_set, net, loss, trainer)
-    print(losses)
+    losses = train(train_set, net, loss, trainer, epochs, batch_size, device=device, device_num=device_num)
+    # print(losses)
     plt.plot(np.array(range(len(losses))), np.array(losses))
     plt.show()
 

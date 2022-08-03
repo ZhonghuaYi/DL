@@ -11,16 +11,19 @@ import matplotlib.pyplot as plt
 
 
 def one_hot(Y):
-    y = Y
     if type(Y) == torch.Tensor:
-        y = Y.numpy()
-    m = y.shape[0]
-    new_y = np.zeros((m, 10), dtype=np.int32)
-    for i in range(m):
-        new_y[i, int(y[i])] = 1
-    if type(Y) == torch.Tensor:
-        return torch.from_numpy(new_y)
-    else:
+        y = Y
+        m = y.shape[0]
+        new_y = torch.zeros((m, 10), dtype=torch.int32, device=y.device)
+        for i in range(m):
+            new_y[i, int(y[i])] = 1
+        return new_y
+    elif type(Y) == np.ndarray:
+        y = Y
+        m = y.shape[0]
+        new_y = np.zeros((m, 10), dtype=np.int32)
+        for i in range(m):
+            new_y[i, int(y[i])] = 1
         return new_y
 
 
