@@ -61,3 +61,4 @@ if __name__ == '__main__':
     print(net)
     y = net(x)
     print(f"Output tensor's shape:{y.shape}")
+    print("Number of net's parameters:", sum(param.numel() for param in net.parameters()))

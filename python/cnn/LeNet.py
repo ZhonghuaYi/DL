@@ -51,6 +51,7 @@ if __name__ == '__main__':
     test_set = reshape(test_set)
 
     net = LeNet()
+    print("Number of net's parameters:", sum(param.numel() for param in net.parameters()))
     # net.apply(init_params)
     lr = 0.001
     epochs = 5
