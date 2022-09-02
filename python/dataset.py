@@ -66,6 +66,14 @@ class DataSet(metaclass=abc.ABCMeta):
             ind = index[i:min(i + batch_size, nums)]
             yield self.features[ind], self.labels[ind]
 
+    def slide(self, start, end):
+        import copy
+        self_copy = copy.deepcopy(self)
+        self_copy.features = self_copy.features[start:end, ...]
+        self_copy.labels = self_copy.labels[start:end, ...]
+        return self_copy
+
+
     @abc.abstractmethod
     def data_plot(self, *args, **kwargs):
         pass
@@ -304,3 +312,27 @@ class FashionMnistData(DataSet):
             result_1 = result * self.labels
             recall_rate = result_1.sum(dim=0) / result.sum(dim=0)
             print(f"Recall: {recall_rate}")
+
+
+class SequentialData(DataSet):
+    def __init__(self, sequence_length, tau):
+        time = torch.arange(sequence_length)
+        x = torch.sin(time * 0.01) + torch.normal(0, 0.02, (sequence_length,))
+        features = torch.zeros((sequence_length-tau, tau))
+        for i in range(tau):
+            features[:, i] = x[i:i+sequence_length-tau]
+        labels = x[tau:].reshape(-1, 1)
+        self.features = features
+        self.labels = labels
+
+    def data_plot(self, tau):
+        x = torch.cat((self.features[:tau, 0], self.labels[:, 0]))
+        plt.plot(x.numpy())
+        plt.show()
+
+    def data_scale(self, tau):
+        x = torch.cat((self.features[:tau, 0], self.labels[:, 0]))
+        x_mean = torch.mean(x)
+        x_std = torch.sqrt(torch.var(x))
+        self.features = (self.features - x_mean) / x_std
+        self.labels = (self.labels - x_mean) / x_std
